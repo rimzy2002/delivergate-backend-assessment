@@ -101,3 +101,38 @@ func invalidCredentials(c *fiber.Ctx) error {
 		"error": "invalid email or password",
 	})
 }
+
+func (h *AuthHandler) Me(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return unauthorizedUser(c)
+	}
+
+	var user models.User
+
+	result := h.DB.First(&user, userID)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return unauthorizedUser(c)
+	}
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "could not retrieve user",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": fiber.Map{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
+	})
+}
+
+func unauthorizedUser(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		"error": "authentication required",
+	})
+}

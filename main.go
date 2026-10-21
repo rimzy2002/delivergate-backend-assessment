@@ -7,6 +7,7 @@ import (
 	"github.com/rimzy2002/delivergate-backend-assessment/config"
 	"github.com/rimzy2002/delivergate-backend-assessment/database"
 	"github.com/rimzy2002/delivergate-backend-assessment/handlers"
+	"github.com/rimzy2002/delivergate-backend-assessment/middleware"
 )
 
 func main() {
@@ -32,6 +33,9 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(database.DB, cfg.JWTSecret)
 	app.Post("/api/auth/login", authHandler.Login)
+
+	authRequired := middleware.Authenticate(cfg.JWTSecret)
+	app.Get("/api/auth/me", authRequired, authHandler.Me)
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
