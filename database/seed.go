@@ -1,9 +1,11 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/rimzy2002/delivergate-backend-assessment/models"
 )
@@ -52,7 +54,7 @@ func SeedInitialData(
 	}
 
 	for _, user := range users {
-		if err := createUserIfMissing(user); err != nil {
+		if err := createOrUpdateUser(user); err != nil {
 			return err
 		}
 	}
@@ -79,36 +81,59 @@ func seedCategories() error {
 	return nil
 }
 
-func createUserIfMissing(input seedUser) error {
-	var existingCount int64
+func createOrUpdateUser(input seedUser) error {
+	var user models.User
 
-	if err := DB.Model(&models.User{}).
-		Where("email = ?", input.Email).
-		Count(&existingCount).Error; err != nil {
-		return fmt.Errorf("check user %s: %w", input.Email, err)
+	result := DB.Where("email = ?", input.Email).First(&user)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("find user %s: %w", input.Email, result.Error)
 	}
 
-	if existingCount > 0 {
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		passwordHash, err := bcrypt.GenerateFromPassword(
+			[]byte(input.Password),
+			bcrypt.DefaultCost,
+		)
+		if err != nil {
+			return fmt.Errorf("hash password for %s: %w", input.Email, err)
+		}
+
+		user = models.User{
+			Name:         input.Name,
+			Email:        input.Email,
+			PasswordHash: string(passwordHash),
+			Role:         input.Role,
+		}
+
+		if err := DB.Create(&user).Error; err != nil {
+			return fmt.Errorf("create user %s: %w", input.Email, err)
+		}
+
 		return nil
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword(
+	updates := map[string]any{
+		"name": input.Name,
+		"role": input.Role,
+	}
+
+	if bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
 		[]byte(input.Password),
-		bcrypt.DefaultCost,
-	)
-	if err != nil {
-		return fmt.Errorf("hash password for %s: %w", input.Email, err)
+	) != nil {
+		passwordHash, err := bcrypt.GenerateFromPassword(
+			[]byte(input.Password),
+			bcrypt.DefaultCost,
+		)
+		if err != nil {
+			return fmt.Errorf("hash password for %s: %w", input.Email, err)
+		}
+
+		updates["password_hash"] = string(passwordHash)
 	}
 
-	user := models.User{
-		Name:         input.Name,
-		Email:        input.Email,
-		PasswordHash: string(passwordHash),
-		Role:         input.Role,
-	}
-
-	if err := DB.Create(&user).Error; err != nil {
-		return fmt.Errorf("create user %s: %w", input.Email, err)
+	if err := DB.Model(&user).Updates(updates).Error; err != nil {
+		return fmt.Errorf("update user %s: %w", input.Email, err)
 	}
 
 	return nil
