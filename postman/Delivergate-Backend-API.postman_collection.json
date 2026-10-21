@@ -1,0 +1,368 @@
+{
+  "info": {
+    "_postman_id": "cd55e6da-e1c6-48aa-a1a7-delivergate-backend",
+    "name": "Delivergate Backend API",
+    "description": "Complete API verification flow for the Delivergate ice cream shop backend. Select the Delivergate Local environment, enter the three local demo passwords, start the API, and run this collection in order.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{owner_token}}", "type": "string" }]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response time is below 2 seconds', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health",
+            "description": "Confirms that the API process is running."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Service is healthy', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Owner Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"owner@delivergate.local\",\n  \"password\": \"{{owner_password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner login succeeds', function () { pm.response.to.have.status(200); });",
+            "const data = pm.response.json();",
+            "pm.test('Owner role returned', function () { pm.expect(data.user.role).to.eql('owner'); });",
+            "pm.environment.set('owner_token', data.token);",
+            "pm.environment.set('run_id', Date.now().toString());"
+          ] } }]
+        },
+        {
+          "name": "Manager Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"manager@delivergate.local\",\n  \"password\": \"{{manager_password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Manager login succeeds', function () { pm.response.to.have.status(200); });",
+            "const data = pm.response.json();",
+            "pm.test('Manager role returned', function () { pm.expect(data.user.role).to.eql('manager'); });",
+            "pm.environment.set('manager_token', data.token);"
+          ] } }]
+        },
+        {
+          "name": "Cashier Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"cashier@delivergate.local\",\n  \"password\": \"{{cashier_password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier login succeeds', function () { pm.response.to.have.status(200); });",
+            "const data = pm.response.json();",
+            "pm.test('Cashier role returned', function () { pm.expect(data.user.role).to.eql('cashier'); });",
+            "pm.environment.set('cashier_token', data.token);"
+          ] } }]
+        },
+        {
+          "name": "Current User",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/auth/me" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Authenticated owner returned', function () { pm.expect(pm.response.json().user.role).to.eql('owner'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/categories" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "const data = pm.response.json();",
+            "pm.test('At least one category exists', function () { pm.expect(data.categories.length).to.be.above(0); });",
+            "pm.environment.set('category_id', data.categories[0].id);"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Owner - Create Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Vanilla Tub {{run_id}}\",\n  \"description\": \"Created by the Stage 8 collection\",\n  \"category_id\": {{category_id}},\n  \"price\": 1250.50,\n  \"quantity\": 20\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/items"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Item is created', function () { pm.response.to.have.status(201); });",
+            "const data = pm.response.json();",
+            "pm.test('Created item has an ID', function () { pm.expect(data.item.id).to.be.a('number'); });",
+            "pm.environment.set('item_id', data.item.id);"
+          ] } }]
+        },
+        {
+          "name": "List Items",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/items" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Items array returned', function () { pm.expect(pm.response.json().items).to.be.an('array'); });"
+          ] } }]
+        },
+        {
+          "name": "Search Items",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/items?search=Postman", "host": ["{{base_url}}"], "path": ["api", "items"], "query": [{ "key": "search", "value": "Postman" }] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Search finds an item', function () { pm.expect(pm.response.json().items.length).to.be.above(0); });"
+          ] } }]
+        },
+        {
+          "name": "Get Item",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/items/{{item_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Correct item returned', function () { pm.expect(String(pm.response.json().item.id)).to.eql(String(pm.environment.get('item_id'))); });"
+          ] } }]
+        },
+        {
+          "name": "Cashier - Update Item",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{cashier_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 18\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/items/{{item_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier can update inventory', function () { pm.response.to.have.status(200); });",
+            "pm.test('Quantity was updated', function () { pm.expect(pm.response.json().item.quantity).to.eql(18); });"
+          ] } }]
+        },
+        {
+          "name": "Cashier - Create Item Forbidden",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{cashier_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Forbidden Item\",\n  \"category_id\": {{category_id}},\n  \"price\": 100,\n  \"quantity\": 1\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/items"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier create is forbidden', function () { pm.response.to.have.status(403); });",
+            "pm.test('Permission error returned', function () { pm.expect(pm.response.json().error).to.eql('permission denied'); });"
+          ] } }]
+        },
+        {
+          "name": "Manager - Create Item",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{manager_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Manager Chocolate Cup {{run_id}}\",\n  \"description\": \"Created to verify manager access\",\n  \"category_id\": {{category_id}},\n  \"price\": 450,\n  \"quantity\": 10\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/items"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Manager can create an item', function () { pm.response.to.have.status(201); });",
+            "const data = pm.response.json();",
+            "pm.environment.set('manager_item_id', data.item.id);"
+          ] } }]
+        },
+        {
+          "name": "Manager - Delete Item Forbidden",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{manager_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/items/{{manager_item_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Manager delete is forbidden', function () { pm.response.to.have.status(403); });"
+          ] } }]
+        },
+        {
+          "name": "Owner - Delete Item",
+          "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/items/{{item_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner deletes the item', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        },
+        {
+          "name": "Owner - Delete Manager Item",
+          "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/items/{{manager_item_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner deletes the manager item', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Owner - Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Owner Customer\",\n  \"email\": \"owner.customer.{{run_id}}@example.com\",\n  \"phone\": \"0771234567\",\n  \"address\": \"Colombo\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/customers"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Customer is created', function () { pm.response.to.have.status(201); });",
+            "const data = pm.response.json();",
+            "pm.environment.set('customer_id', data.customer.id);"
+          ] } }]
+        },
+        {
+          "name": "List Customers",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/customers" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Customers array returned', function () { pm.expect(pm.response.json().customers).to.be.an('array'); });"
+          ] } }]
+        },
+        {
+          "name": "Search Customers",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/api/customers?search=Postman", "host": ["{{base_url}}"], "path": ["api", "customers"], "query": [{ "key": "search", "value": "Postman" }] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Search finds a customer', function () { pm.expect(pm.response.json().customers.length).to.be.above(0); });"
+          ] } }]
+        },
+        {
+          "name": "Get Customer",
+          "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/customers/{{customer_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('Correct customer returned', function () { pm.expect(String(pm.response.json().customer.id)).to.eql(String(pm.environment.get('customer_id'))); });"
+          ] } }]
+        },
+        {
+          "name": "Cashier - Update Customer",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{cashier_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"0777654321\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/customers/{{customer_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier can update a customer', function () { pm.response.to.have.status(200); });",
+            "pm.test('Phone was updated', function () { pm.expect(pm.response.json().customer.phone).to.eql('0777654321'); });"
+          ] } }]
+        },
+        {
+          "name": "Cashier - Create Customer",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{cashier_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Cashier Customer\",\n  \"email\": \"cashier.customer.{{run_id}}@example.com\",\n  \"phone\": \"0711111111\",\n  \"address\": \"Kandy\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/customers"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier can create a customer', function () { pm.response.to.have.status(201); });",
+            "const data = pm.response.json();",
+            "pm.environment.set('cashier_customer_id', data.customer.id);"
+          ] } }]
+        },
+        {
+          "name": "Cashier - Delete Customer Forbidden",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{cashier_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/customers/{{cashier_customer_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Cashier delete is forbidden', function () { pm.response.to.have.status(403); });"
+          ] } }]
+        },
+        {
+          "name": "Manager - Create Customer",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{manager_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Manager Customer\",\n  \"email\": \"manager.customer.{{run_id}}@example.com\",\n  \"phone\": \"0722222222\",\n  \"address\": \"Galle\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/customers"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Manager can create a customer', function () { pm.response.to.have.status(201); });",
+            "const data = pm.response.json();",
+            "pm.environment.set('manager_customer_id', data.customer.id);"
+          ] } }]
+        },
+        {
+          "name": "Manager - Delete Customer Forbidden",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{manager_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/customers/{{manager_customer_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Manager delete is forbidden', function () { pm.response.to.have.status(403); });"
+          ] } }]
+        },
+        {
+          "name": "Owner - Delete Customer",
+          "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/customers/{{customer_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner deletes the customer', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        },
+        {
+          "name": "Owner - Delete Cashier Customer",
+          "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/customers/{{cashier_customer_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner deletes the cashier customer', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        },
+        {
+          "name": "Owner - Delete Manager Customer",
+          "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/customers/{{manager_customer_id}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Owner deletes the manager customer', function () { pm.response.to.have.status(204); });"
+          ] } }]
+        }
+      ]
+    }
+  ]
+}

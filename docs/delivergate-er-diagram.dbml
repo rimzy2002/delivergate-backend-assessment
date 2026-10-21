@@ -1,0 +1,49 @@
+Project DelivergateBackend {
+  database_type: "SQLite"
+  Note: "Ice cream shop inventory and customer management API"
+}
+
+Table users [headercolor: #3498DB] {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  email varchar(150) [not null, unique]
+  password_hash text [not null]
+  role varchar(20) [not null, note: "owner, manager, or cashier"]
+  created_at datetime
+  updated_at datetime
+}
+
+Table categories [headercolor: #9B59B6] {
+  id integer [pk, increment]
+  name varchar(100) [not null, unique]
+  created_at datetime
+  updated_at datetime
+}
+
+Table items [headercolor: #E67E22] {
+  id integer [pk, increment]
+  name varchar(150) [not null]
+  description varchar(500)
+  category_id integer [not null]
+  price real [not null, note: "Must be greater than zero"]
+  quantity integer [not null, note: "Must be zero or greater"]
+  created_at datetime
+  updated_at datetime
+
+  indexes {
+    name
+    category_id
+  }
+}
+
+Table customers [headercolor: #2ECC71] {
+  id integer [pk, increment]
+  name varchar(150) [not null]
+  email varchar(150) [not null, unique]
+  phone varchar(30) [not null]
+  address varchar(300)
+  created_at datetime
+  updated_at datetime
+}
+
+Ref: categories.id < items.category_id [delete: restrict, update: cascade]
