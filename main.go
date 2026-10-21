@@ -8,6 +8,7 @@ import (
 	"github.com/rimzy2002/delivergate-backend-assessment/database"
 	"github.com/rimzy2002/delivergate-backend-assessment/handlers"
 	"github.com/rimzy2002/delivergate-backend-assessment/middleware"
+	"github.com/rimzy2002/delivergate-backend-assessment/models"
 )
 
 func main() {
@@ -32,10 +33,47 @@ func main() {
 	app := fiber.New()
 
 	authHandler := handlers.NewAuthHandler(database.DB, cfg.JWTSecret)
+	itemHandler := handlers.NewItemHandler(database.DB)
 	app.Post("/api/auth/login", authHandler.Login)
 
 	authRequired := middleware.Authenticate(cfg.JWTSecret)
 	app.Get("/api/auth/me", authRequired, authHandler.Me)
+
+	app.Get(
+		"/api/categories",
+		authRequired,
+		itemHandler.ListCategories,
+	)
+
+	items := app.Group("/api/items", authRequired)
+
+	items.Get("", itemHandler.ListItems)
+	items.Get("/:id", itemHandler.GetItem)
+
+	items.Post(
+		"",
+		middleware.RequireRoles(
+			models.RoleOwner,
+			models.RoleManager,
+		),
+		itemHandler.CreateItem,
+	)
+
+	items.Patch(
+		"/:id",
+		middleware.RequireRoles(
+			models.RoleOwner,
+			models.RoleManager,
+			models.RoleCashier,
+		),
+		itemHandler.UpdateItem,
+	)
+
+	items.Delete(
+		"/:id",
+		middleware.RequireRoles(models.RoleOwner),
+		itemHandler.DeleteItem,
+	)
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
