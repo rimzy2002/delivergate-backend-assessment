@@ -34,6 +34,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(database.DB, cfg.JWTSecret)
 	itemHandler := handlers.NewItemHandler(database.DB)
+	customerHandler := handlers.NewCustomerHandler(database.DB)
 	app.Post("/api/auth/login", authHandler.Login)
 
 	authRequired := middleware.Authenticate(cfg.JWTSecret)
@@ -73,6 +74,37 @@ func main() {
 		"/:id",
 		middleware.RequireRoles(models.RoleOwner),
 		itemHandler.DeleteItem,
+	)
+
+	customers := app.Group("/api/customers", authRequired)
+
+	customers.Get("", customerHandler.ListCustomers)
+	customers.Get("/:id", customerHandler.GetCustomer)
+
+	customers.Post(
+		"",
+		middleware.RequireRoles(
+			models.RoleOwner,
+			models.RoleManager,
+			models.RoleCashier,
+		),
+		customerHandler.CreateCustomer,
+	)
+
+	customers.Patch(
+		"/:id",
+		middleware.RequireRoles(
+			models.RoleOwner,
+			models.RoleManager,
+			models.RoleCashier,
+		),
+		customerHandler.UpdateCustomer,
+	)
+
+	customers.Delete(
+		"/:id",
+		middleware.RequireRoles(models.RoleOwner),
+		customerHandler.DeleteCustomer,
 	)
 
 	app.Get("/health", func(c *fiber.Ctx) error {
