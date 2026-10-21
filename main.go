@@ -16,6 +16,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := database.SeedInitialData(
+		cfg.OwnerPassword,
+		cfg.ManagerPassword,
+		cfg.CashierPassword,
+	); err != nil {
+		log.Fatal(err)
+	}
+
 	app := fiber.New()
 
 	app.Get("/health", func(c *fiber.Ctx) error {
