@@ -191,18 +191,19 @@ middleware/   JWT authentication, role checks, and tests
 models/       GORM database models
 docs/         ER diagram files
 postman/      Postman collection and local environment
-frontend/     Optional C# WPF desktop client (in progress)
+frontend/     C# WPF desktop client, checks and packaging
 main.go       Application routes and startup
 ```
 
-## Desktop frontend (in progress)
+## Desktop frontend
 
 The optional Windows desktop client is in [`frontend`](frontend/README.md).
-F1–F7 provide a simple WPF window, configurable API address, backend health
+F1–F10 provide a simple WPF window, configurable API address, backend health
 checks, login with in-memory sessions, role-aware navigation, inventory search,
 category filtering, role-checked inventory forms, and customer listing/search
 with create/edit forms and owner-only deletion. See the frontend guides for
-verification details and remaining UI/live-test limitations.
+verification details. F8 adds interface polish, F9 adds checked ZIP packaging,
+and [F10](frontend/F10-handoff.md) records final verification and submission steps.
 
 To run the current window, install the .NET 10 SDK on Windows and use:
 

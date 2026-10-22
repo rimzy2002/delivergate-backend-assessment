@@ -4,7 +4,12 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F9 - Release preparation
+## Current stage: F10 - Final verification and handoff
+
+See [F10 handoff](F10-handoff.md) for the final test results and deliverables.
+On 23 October 2026, the isolated inventory and customer live-write tests passed;
+the earlier F7 Application Control blocker did not recur. Manual visual acceptance
+and recording/submitting the demo remain separate tasks.
 
 Build a checked, framework-dependent ZIP from the repository root:
 
