@@ -5,6 +5,10 @@
         <BooleanToVisibilityConverter x:Key="EditorVisibility" />
     </UserControl.Resources>
     <StackPanel>
+        <TextBlock Text="Find customers and keep their contact details up to date." TextWrapping="Wrap" Margin="0,0,0,12" />
+        <ProgressBar IsIndeterminate="True" Height="4" Margin="0,0,0,12"
+                     Visibility="{Binding IsBusy, Converter={StaticResource EditorVisibility}}"
+                     AutomationProperties.Name="Customer request in progress" />
         <WrapPanel Margin="0,0,0,12">
             <Button Content="_New customer" Click="New_Click" IsEnabled="{Binding CanCreate}" Padding="12,6" Margin="0,0,8,0" />
             <Button Content="_Edit selected" Click="Edit_Click" IsEnabled="{Binding CanEdit}" Padding="12,6" Margin="0,0,8,0" />

@@ -4,7 +4,7 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F7 - Customer management
+## Current stage: F8 - Interface polish
 
 Implemented:
 
@@ -40,6 +40,11 @@ Duplicate email errors retain the draft. See [the F7 guide](F7-guide.md), includ
 the Windows Application Control limitation affecting live write verification.
 
 ## Requirements
+
+F8 keeps the white Windows-style interface and adds consistent control sizing,
+clearer table rows and headers, a wider initial workspace, and loading indicators
+for inventory and customer requests. See [the F8 guide](F8-guide.md) for the
+changes and the manual UI acceptance checklist.
 
 - Windows with the .NET 10 SDK
 - VS Code or another C# editor

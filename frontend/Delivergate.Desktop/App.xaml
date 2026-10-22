@@ -2,5 +2,39 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnMainWindowClose">
-    <Application.Resources />
+    <Application.Resources>
+        <!-- Keep native templates so keyboard focus and Windows accessibility remain intact. -->
+        <Style TargetType="Button">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="MinWidth" Value="80" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D5D5D5" />
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#E8E8E8" />
+            <Setter Property="MinRowHeight" Value="34" />
+            <Setter Property="ColumnHeaderHeight" Value="36" />
+            <Setter Property="CanUserReorderColumns" Value="False" />
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </Application.Resources>
 </Application>
