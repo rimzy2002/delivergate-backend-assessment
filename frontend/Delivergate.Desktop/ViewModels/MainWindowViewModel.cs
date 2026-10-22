@@ -20,10 +20,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _apiClient = apiClient;
         ApiBaseUrl = apiBaseUrl;
         Auth = new AuthViewModel(apiClient);
+        Workspace = new WorkspaceViewModel(apiClient.Session);
     }
 
     public string ApiBaseUrl { get; }
     public AuthViewModel Auth { get; }
+    public WorkspaceViewModel Workspace { get; }
 
     public string StatusMessage
     {

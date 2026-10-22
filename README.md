@@ -198,8 +198,8 @@ main.go       Application routes and startup
 ## Desktop frontend (in progress)
 
 The optional Windows desktop client is in [`frontend`](frontend/README.md).
-F1–F3 provide a simple WPF window, configurable API address, backend health
-checks, and login with in-memory session handling. Role-based navigation and CRUD
+F1–F4 provide a simple WPF window, configurable API address, backend health
+checks, login with in-memory sessions, and role-aware workspace navigation. CRUD
 screens are planned for the following stages; they are not implemented yet.
 
 To run the current window, install the .NET 10 SDK on Windows and use:

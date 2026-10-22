@@ -4,7 +4,7 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F3 - Login and session handling
+## Current stage: F4 - Navigation and role-based workspace
 
 Implemented:
 
@@ -18,9 +18,11 @@ Click Check connection to call `GET /health`. The screen reports success,
 an unreachable server, a timeout, HTTP errors, or invalid health responses.
 The button is disabled during requests, and the window stays responsive.
 F3 adds email/password login, server-verified identity, a signed-in view showing
-name/email/role, session verification, and local logout. Role-based navigation
-and CRUD screens come afterwards. See [the F3 guide](F3-guide.md) for the code
-explanation, test results, and manual walkthrough.
+name/email/role, session verification, and local logout. See [the F3 guide](F3-guide.md).
+F4 adds Dashboard, Inventory, and Customers navigation with permission summaries
+matching the Go backend. All three roles can open both management sections;
+their permitted actions differ. Data lists/forms are still F5–F7 work.
+See [the F4 guide](F4-guide.md) for the permission matrix, code explanation, and tests.
 
 ## Requirements
 
@@ -78,6 +80,10 @@ start the backend with `go run .` in a separate terminal at the repository root.
 | `Models/AuthModels.cs` | Represents login and current-user JSON responses |
 | `Services/UserSession.cs` | Holds the token and current user in memory only |
 | `Services/ApiException.cs` | Reports safe authentication errors with HTTP status codes |
+| `Services/RolePermissions.cs` | Defines the UI permission matrix for each role |
+| `ViewModels/WorkspaceViewModel.cs` | Guards navigation and resets workspace state on logout |
+| `Views/DashboardView.xaml` | Shows the workspace introduction |
+| `Views/InventoryView.xaml` / `Views/CustomersView.xaml` | Show role permissions and upcoming features |
 | `appsettings.json` | Stores the API address |
 
 All desktop C# files belong under `frontend/Delivergate.Desktop`, not in the

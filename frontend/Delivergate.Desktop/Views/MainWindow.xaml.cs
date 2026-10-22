@@ -45,4 +45,13 @@ public partial class MainWindow : Window
         LoginPassword.Clear();
         _viewModel.Auth.Logout();
     }
+
+    private void Dashboard_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.Workspace.Navigate(WorkspacePage.Dashboard);
+
+    private void Inventory_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.Workspace.Navigate(WorkspacePage.Inventory);
+
+    private void Customers_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.Workspace.Navigate(WorkspacePage.Customers);
 }
