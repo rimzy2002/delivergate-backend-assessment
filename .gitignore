@@ -36,3 +36,11 @@ go.work.sum
 *.db
 *.db-shm
 *.db-wal
+
+# .NET build output and local IDE files
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+TestResults/

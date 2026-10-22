@@ -191,7 +191,21 @@ middleware/   JWT authentication, role checks, and tests
 models/       GORM database models
 docs/         ER diagram files
 postman/      Postman collection and local environment
+frontend/     Optional C# WPF desktop client (in progress)
 main.go       Application routes and startup
+```
+
+## Desktop frontend (in progress)
+
+The optional Windows desktop client is in [`frontend`](frontend/README.md).
+F1 provides a simple WPF window and configurable API address. Login and CRUD
+screens are planned for the following stages; they are not implemented yet.
+
+To run the current window, install the .NET 10 SDK on Windows and use:
+
+```powershell
+cd frontend
+dotnet run --project .\Delivergate.Desktop\Delivergate.Desktop.csproj
 ```
 
 ## Security notes
