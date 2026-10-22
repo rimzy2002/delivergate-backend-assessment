@@ -4,7 +4,18 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F8 - Interface polish
+## Current stage: F9 - Release preparation
+
+Build a checked, framework-dependent ZIP from the repository root:
+
+```powershell
+.\frontend\scripts\Publish-Desktop.ps1
+```
+
+This runs the controlled checks, rebuilds the WPF project, publishes to a fresh
+ignored `frontend/artifacts` folder, checks required files and configuration,
+and prints the ZIP path and SHA256 checksum. No package is uploaded automatically.
+See [running the desktop app](RUN-DESKTOP.md) and [F9 verification](F9-guide.md).
 
 Implemented:
 

@@ -44,3 +44,4 @@ go.work.sum
 *.user
 *.suo
 TestResults/
+frontend/artifacts/
