@@ -149,6 +149,53 @@ public sealed class ApiClient : IDisposable
             ?? throw new InvalidDataException("The server returned an empty response.");
     }
 
+    public async Task<InventoryItem> SaveItemAsync(int? id, ItemInput input, CancellationToken cancellationToken = default)
+    {
+        if (id is <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+        using HttpResponseMessage response = await SendInventoryMutationAsync(
+            id is null ? HttpMethod.Post : HttpMethod.Patch,
+            id is null ? "api/items" : $"api/items/{id}", input, cancellationToken);
+        ItemResponse? result = await response.Content.ReadFromJsonAsync<ItemResponse>(cancellationToken);
+        InventoryItem? item = result?.Item;
+        if (item is null || item.Id <= 0 || (id.HasValue && item.Id != id.Value) ||
+            string.IsNullOrWhiteSpace(item.Name) || item.CategoryId <= 0 || item.Price <= 0 || item.Quantity < 0)
+            throw new InvalidDataException("The server did not return a valid saved item. Refresh before retrying.");
+        return item;
+    }
+
+    public async Task DeleteItemAsync(int id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+        using HttpResponseMessage response = await SendInventoryMutationAsync(
+            HttpMethod.Delete, $"api/items/{id}", null, cancellationToken);
+        // The backend returns 204 No Content. Do not try to parse an empty JSON body.
+        if (response.StatusCode != HttpStatusCode.NoContent)
+            throw new InvalidDataException("Unexpected delete response. Refresh to check the result.");
+    }
+
+    private async Task<HttpResponseMessage> SendInventoryMutationAsync(
+        HttpMethod method, string path, ItemInput? input, CancellationToken cancellationToken)
+    {
+        string? token = Session.Token;
+        int revision = Session.Revision;
+        if (token is null) throw new ApiException(HttpStatusCode.Unauthorized, "Please sign in first.");
+        using var request = new HttpRequestMessage(method, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        if (input is not null) request.Content = JsonContent.Create(input);
+        HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+        if (response.IsSuccessStatusCode) return response;
+        HttpStatusCode status = response.StatusCode;
+        response.Dispose();
+        if (status == HttpStatusCode.Unauthorized && Session.Revision == revision) Session.Clear();
+        throw status switch
+        {
+            HttpStatusCode.BadRequest => new ApiException(status, "The item was rejected. Check the fields and category, then try again."),
+            HttpStatusCode.NotFound => new ApiException(status, "This item no longer exists. Cancel the form and refresh inventory."),
+            HttpStatusCode.Conflict => new ApiException(status, "The item conflicts with current server data. Refresh inventory."),
+            _ => AuthError(status, isLogin: false)
+        };
+    }
+
     private static bool ValidUser(AuthUser? user) =>
         user is not null && user.Id > 0 &&
         !string.IsNullOrWhiteSpace(user.Name) && !string.IsNullOrWhiteSpace(user.Email) &&

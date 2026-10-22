@@ -30,3 +30,11 @@ public sealed class CategoriesResponse
 {
     public List<InventoryCategory>? Categories { get; init; }
 }
+
+public sealed record ItemInput(string Name, string Description,
+    [property: JsonPropertyName("category_id")] int CategoryId, decimal Price, int Quantity);
+
+public sealed class ItemResponse
+{
+    public InventoryItem? Item { get; init; }
+}

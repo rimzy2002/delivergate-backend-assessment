@@ -198,10 +198,10 @@ main.go       Application routes and startup
 ## Desktop frontend (in progress)
 
 The optional Windows desktop client is in [`frontend`](frontend/README.md).
-F1–F5 provide a simple WPF window, configurable API address, backend health
-checks, login with in-memory sessions, role-aware navigation, and read-only
-inventory listing with name search and category filtering. Inventory forms and
-customer workflows are planned for F6–F7; they are not implemented yet.
+F1–F6 provide a simple WPF window, configurable API address, backend health
+checks, login with in-memory sessions, role-aware navigation, inventory search,
+category filtering, and role-checked inventory create/edit/delete forms.
+Customer workflows are planned for F7; they are not implemented yet.
 
 To run the current window, install the .NET 10 SDK on Windows and use:
 

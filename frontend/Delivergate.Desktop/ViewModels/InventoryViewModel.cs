@@ -8,7 +8,7 @@ using Delivergate.Desktop.Services;
 
 namespace Delivergate.Desktop.ViewModels;
 
-public sealed class InventoryViewModel : INotifyPropertyChanged
+public sealed partial class InventoryViewModel : INotifyPropertyChanged
 {
     private readonly ApiClient _api;
     private IReadOnlyList<InventoryItem> _allItems = [];
@@ -30,9 +30,9 @@ public sealed class InventoryViewModel : INotifyPropertyChanged
     public bool IsBusy { get; private set; }
     public bool HasLoaded { get; private set; }
     public string Message { get; private set; } = "Open Inventory to load items.";
-    public bool CanLoad => !IsBusy && _api.Session.IsSignedIn &&
+    public bool CanLoad => !IsBusy && !IsEditing && _api.Session.IsSignedIn &&
         RolePermissions.ForRole(_api.Session.User?.Role).CanViewInventory;
-    public bool CanFilter => CanLoad && HasLoaded;
+    public bool CanFilter => CanLoad && HasLoaded && !RequiresRefresh;
     public string ResultSummary => HasLoaded ? $"Showing {Items.Count} of {_allItems.Count} items" : "No data loaded";
 
     public string SearchText
@@ -48,7 +48,7 @@ public sealed class InventoryViewModel : INotifyPropertyChanged
     public InventoryItem? SelectedItem
     {
         get => _selectedItem;
-        set { _selectedItem = value; Notify(); }
+        set { _selectedItem = value; NotifyAll(); }
     }
 
     public void ClearFilters()
@@ -83,6 +83,7 @@ public sealed class InventoryViewModel : INotifyPropertyChanged
                 .Concat(categories.OrderBy(category => category.Name)).ToArray();
             if (!Categories.Any(category => category.Id == _selectedCategoryId)) _selectedCategoryId = 0;
             _allItems = items;
+            RequiresRefresh = false;
             HasLoaded = true;
             ApplyFilters();
         }
@@ -135,6 +136,8 @@ public sealed class InventoryViewModel : INotifyPropertyChanged
             _selectedItem = null;
             _searchText = "";
             _selectedCategoryId = 0;
+            ResetEditor();
+            RequiresRefresh = false;
             Message = "Open Inventory to load items.";
         }
         NotifyAll();
