@@ -1,14 +1,25 @@
 using System.Windows;
-using Delivergate.Desktop.Configuration;
+using Delivergate.Desktop.ViewModels;
 
 namespace Delivergate.Desktop.Views;
 
 public partial class MainWindow : Window
 {
-    public MainWindow(AppSettings settings)
+    private readonly MainWindowViewModel _viewModel;
+
+    public MainWindow(MainWindowViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = settings;
+
+        _viewModel = viewModel;
+        DataContext = viewModel;
+    }
+
+    private async void CheckConnection_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        await _viewModel.CheckConnectionAsync();
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)

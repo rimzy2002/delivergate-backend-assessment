@@ -2,10 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Delivergate - Shop Management"
-        Width="820" Height="520" MinWidth="600" MinHeight="420"
+        Width="820"
+        Height="520"
+        MinWidth="600"
+        MinHeight="420"
         WindowStartupLocation="CenterScreen"
-        Background="White" Foreground="#222222"
-        FontFamily="Segoe UI" FontSize="14">
+        Background="White"
+        Foreground="#222222"
+        FontFamily="Segoe UI"
+        FontSize="14">
+
     <Grid Margin="32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -14,31 +20,49 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            <TextBlock Text="Delivergate" FontSize="26" FontWeight="SemiBold" />
-            <TextBlock Text="Ice cream shop management" Margin="0,6,0,20" />
+            <TextBlock Text="Delivergate"
+                       FontSize="26"
+                       FontWeight="SemiBold" />
+
+            <TextBlock Text="Ice cream shop management"
+                       Margin="0,6,0,20" />
+
             <Separator />
         </StackPanel>
 
         <StackPanel Grid.Row="1" Margin="0,24,0,24">
-            <TextBlock Text="Welcome" FontSize="20" FontWeight="SemiBold" />
-            <TextBlock Margin="0,12,0,0" TextWrapping="Wrap"
-                       Text="Manage inventory items and customer records from one desktop application." />
-            <TextBlock Margin="0,18,0,0" TextWrapping="Wrap"
-                       Text="Project setup is complete. Sign-in and management screens will be added in the following stages." />
+            <TextBlock Text="Backend connection"
+                       FontSize="20"
+                       FontWeight="SemiBold" />
+
+            <TextBlock
+                Text="Check that the backend is available before signing in."
+                Margin="0,12,0,20"
+                TextWrapping="Wrap" />
+
+            <TextBlock Text="API address"
+                       FontWeight="SemiBold" />
+
+            <TextBlock Text="{Binding ApiBaseUrl}"
+                       Margin="0,6,0,20"
+                       TextWrapping="Wrap" />
+
+            <Button Content="_Check connection"
+                    HorizontalAlignment="Left"
+                    Padding="16,8"
+                    IsEnabled="{Binding CanCheckConnection}"
+                    Click="CheckConnection_Click" />
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       Margin="0,16,0,0"
+                       TextWrapping="Wrap"
+                       AutomationProperties.LiveSetting="Polite" />
         </StackPanel>
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
-                <TextBlock Text="Configured API address" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding ApiBaseUrl, Mode=OneTime}" TextWrapping="Wrap" />
-                <TextBlock Text="Connection not checked yet." FontSize="12" Margin="0,4,0,0" />
-            </StackPanel>
-            <Button Grid.Column="1" Content="_Close" Padding="20,6"
-                    VerticalAlignment="Center" Click="Close_Click" />
-        </Grid>
+        <Button Grid.Row="2"
+                Content="_Close"
+                HorizontalAlignment="Right"
+                Padding="20,6"
+                Click="Close_Click" />
     </Grid>
 </Window>

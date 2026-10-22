@@ -198,7 +198,8 @@ main.go       Application routes and startup
 ## Desktop frontend (in progress)
 
 The optional Windows desktop client is in [`frontend`](frontend/README.md).
-F1 provides a simple WPF window and configurable API address. Login and CRUD
+F1/F2 provide a simple WPF window, configurable API address, and a working
+backend health check with connection error handling. Login and CRUD
 screens are planned for the following stages; they are not implemented yet.
 
 To run the current window, install the .NET 10 SDK on Windows and use:
@@ -214,3 +215,15 @@ The `.env` file, SQLite database files, generated tokens, and executable files
 must stay out of Git. The repository includes only `.env.example`, with safe
 placeholder values. Do not commit real passwords, JWT secrets, access tokens,
 or GitHub credentials.
+
+### Backend connection
+
+The desktop application reads its API address from appsettings.json.
+Click Check connection to call GET /health.
+
+The screen shows a connection result and handles an unreachable server,
+request timeouts, unsuccessful HTTP responses, and invalid response data.
+The button is disabled while a request is running.
+
+Start the Go backend before checking the connection.
+Authentication will be added in the next stage.
