@@ -87,7 +87,9 @@
                                 <views:InventoryView
                                     DataContext="{Binding DataContext.Inventory, RelativeSource={RelativeSource AncestorType=Window}}"
                                     Visibility="{Binding DataContext.Workspace.IsInventory, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVisibility}}" />
-                                <views:CustomersView Visibility="{Binding IsCustomers, Converter={StaticResource BoolVisibility}}" />
+                                <views:CustomersView
+                                    DataContext="{Binding DataContext.Customers, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    Visibility="{Binding DataContext.Workspace.IsCustomers, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVisibility}}" />
                             </StackPanel>
                         </Border>
                     </Grid>

@@ -96,6 +96,7 @@ await AuthChecks.RunAsync(args);
 NavigationChecks.Run();
 await InventoryChecks.RunAsync();
 await InventoryEditingChecks.RunAsync(args);
+await CustomerChecks.RunAsync(args);
 
 sealed class StubHandler(
     Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) : HttpMessageHandler

@@ -4,7 +4,7 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F6 - Inventory create, edit, and delete
+## Current stage: F7 - Customer management
 
 Implemented:
 
@@ -21,7 +21,7 @@ F3 adds email/password login, server-verified identity, a signed-in view showing
 name/email/role, session verification, and local logout. See [the F3 guide](F3-guide.md).
 F4 adds Dashboard, Inventory, and Customers navigation with permission summaries
 matching the Go backend. All three roles can open both management sections;
-their permitted actions differ. Customer workflows are still F7 work.
+their permitted actions differ.
 See [the F4 guide](F4-guide.md) for the permission matrix, code explanation, and tests.
 
 F5 loads real inventory and categories using authenticated GET requests. Open
@@ -33,6 +33,11 @@ F6 adds New item, Edit selected, Save/Cancel, and confirmed deletion. Owner can
 create/edit/delete, manager can create/edit, and cashier can edit. The backend
 still authorizes each request. See [the F6 guide](F6-guide.md) for validation,
 error recovery, and the isolated real-backend test script.
+
+F7 adds customer listing, local search by name/email/phone, create/edit forms,
+and owner-only confirmed deletion. All roles can view/create/edit customers.
+Duplicate email errors retain the draft. See [the F7 guide](F7-guide.md), including
+the Windows Application Control limitation affecting live write verification.
 
 ## Requirements
 
@@ -93,9 +98,11 @@ start the backend with `go run .` in a separate terminal at the repository root.
 | `Services/RolePermissions.cs` | Defines the UI permission matrix for each role |
 | `ViewModels/WorkspaceViewModel.cs` | Guards navigation and resets workspace state on logout |
 | `Views/DashboardView.xaml` | Shows the workspace introduction |
-| `Views/InventoryView.xaml` / `Views/CustomersView.xaml` | Show role permissions and upcoming features |
+| `Views/InventoryView.xaml` / `Views/CustomersView.xaml` | Display tables, search, role-aware forms and confirmation actions |
 | `ViewModels/InventoryViewModel.cs` | Loads inventory and applies search/category filters |
 | `Models/InventoryModels.cs` | Maps item and category JSON, including category_id |
+| `ViewModels/CustomersViewModel.cs` | Customer loading, search, draft validation and write state |
+| `Models/CustomerModels.cs` | Customer API response and input types |
 | `appsettings.json` | Stores the API address |
 
 All desktop C# files belong under `frontend/Delivergate.Desktop`, not in the
@@ -131,6 +138,15 @@ For live authentication, set `OWNER_PASSWORD`, `MANAGER_PASSWORD`, and
 backend settings, and add `-- --live --live-auth`. Never commit those values.
 This checks all three seeded roles against the running backend without printing tokens.
 Also add `--live-inventory` to read categories/items for each role without changing records.
+Use `--live-customer-read` to read customers for each role without changing records.
+For isolated real CRUD checks (never the shop database), run from the repo root:
+
+```powershell
+.\frontend\scripts\Test-IsolatedInventoryCrud.ps1 -IncludeCustomers
+```
+
+This requires Windows to permit Go and the temporary test backend executable.
+F7's first isolated run was blocked by Application Control. No policy was changed.
 
 ## Session security
 

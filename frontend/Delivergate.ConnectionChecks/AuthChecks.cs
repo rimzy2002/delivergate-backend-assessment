@@ -191,6 +191,12 @@ internal static class AuthChecks
                 await api.LoginAsync(role + "@delivergate.local", password);
                 Assert(api.Session.User?.Role == role, "Real user role");
                 await api.RefreshSessionAsync();
+                if (args.Contains("--live-customer-read"))
+                {
+                    var customers = await api.GetCustomersAsync();
+                    Assert(customers.All(customer => customer.Id > 0), "Live customer shape");
+                    Pass($"live {role} read-only customer listing");
+                }
                 if (args.Contains("--live-inventory"))
                 {
                     var categories = await api.GetCategoriesAsync();

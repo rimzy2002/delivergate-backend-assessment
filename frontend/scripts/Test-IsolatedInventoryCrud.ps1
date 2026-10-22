@@ -1,3 +1,5 @@
+param([switch]$IncludeCustomers)
+
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('delivergate-f6-' + [Guid]::NewGuid().ToString('N'))
@@ -35,7 +37,9 @@ try {
         } catch { Start-Sleep -Milliseconds 200 }
     }
     if (!$ready) { throw 'Isolated backend did not become ready.' }
-    & dotnet run --project './frontend/Delivergate.ConnectionChecks/Delivergate.ConnectionChecks.csproj' -- --live-crud
+    $checkArguments = @('--live-crud')
+    if ($IncludeCustomers) { $checkArguments += '--live-customers' }
+    & dotnet run --project './frontend/Delivergate.ConnectionChecks/Delivergate.ConnectionChecks.csproj' -- @checkArguments
     if ($LASTEXITCODE -ne 0) { throw 'Inventory CRUD checks failed.' }
     Write-Output 'Isolated CRUD checks passed; the real database was not used.'
 } finally {

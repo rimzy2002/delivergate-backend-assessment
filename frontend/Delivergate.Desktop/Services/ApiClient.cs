@@ -152,9 +152,9 @@ public sealed class ApiClient : IDisposable
     public async Task<InventoryItem> SaveItemAsync(int? id, ItemInput input, CancellationToken cancellationToken = default)
     {
         if (id is <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-        using HttpResponseMessage response = await SendInventoryMutationAsync(
+        using HttpResponseMessage response = await SendMutationAsync(
             id is null ? HttpMethod.Post : HttpMethod.Patch,
-            id is null ? "api/items" : $"api/items/{id}", input, cancellationToken);
+            id is null ? "api/items" : $"api/items/{id}", JsonContent.Create(input), "item", cancellationToken);
         ItemResponse? result = await response.Content.ReadFromJsonAsync<ItemResponse>(cancellationToken);
         InventoryItem? item = result?.Item;
         if (item is null || item.Id <= 0 || (id.HasValue && item.Id != id.Value) ||
@@ -166,22 +166,26 @@ public sealed class ApiClient : IDisposable
     public async Task DeleteItemAsync(int id, CancellationToken cancellationToken = default)
     {
         if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-        using HttpResponseMessage response = await SendInventoryMutationAsync(
-            HttpMethod.Delete, $"api/items/{id}", null, cancellationToken);
+        using HttpResponseMessage response = await SendMutationAsync(
+            HttpMethod.Delete, $"api/items/{id}", null, "item", cancellationToken);
         // The backend returns 204 No Content. Do not try to parse an empty JSON body.
         if (response.StatusCode != HttpStatusCode.NoContent)
             throw new InvalidDataException("Unexpected delete response. Refresh to check the result.");
     }
 
-    private async Task<HttpResponseMessage> SendInventoryMutationAsync(
-        HttpMethod method, string path, ItemInput? input, CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> SendMutationAsync(
+        HttpMethod method, string path, HttpContent? content, string resource, CancellationToken cancellationToken)
     {
         string? token = Session.Token;
         int revision = Session.Revision;
-        if (token is null) throw new ApiException(HttpStatusCode.Unauthorized, "Please sign in first.");
+        if (token is null)
+        {
+            content?.Dispose();
+            throw new ApiException(HttpStatusCode.Unauthorized, "Please sign in first.");
+        }
         using var request = new HttpRequestMessage(method, path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        if (input is not null) request.Content = JsonContent.Create(input);
+        request.Content = content;
         HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
         if (response.IsSuccessStatusCode) return response;
         HttpStatusCode status = response.StatusCode;
@@ -189,12 +193,44 @@ public sealed class ApiClient : IDisposable
         if (status == HttpStatusCode.Unauthorized && Session.Revision == revision) Session.Clear();
         throw status switch
         {
-            HttpStatusCode.BadRequest => new ApiException(status, "The item was rejected. Check the fields and category, then try again."),
-            HttpStatusCode.NotFound => new ApiException(status, "This item no longer exists. Cancel the form and refresh inventory."),
-            HttpStatusCode.Conflict => new ApiException(status, "The item conflicts with current server data. Refresh inventory."),
+            HttpStatusCode.BadRequest => new ApiException(status, $"The {resource} was rejected. Check the fields, then try again."),
+            HttpStatusCode.NotFound => new ApiException(status, $"This {resource} no longer exists. Cancel the form and refresh the list."),
+            HttpStatusCode.Conflict => new ApiException(status, resource == "customer"
+                ? "A customer with this email already exists. Use a different email."
+                : "The item conflicts with current server data. Refresh inventory."),
             _ => AuthError(status, isLogin: false)
         };
     }
+
+    public async Task<IReadOnlyList<Customer>> GetCustomersAsync(CancellationToken cancellationToken = default)
+    {
+        CustomersResponse response = await GetProtectedAsync<CustomersResponse>("api/customers", cancellationToken);
+        if (response.Customers is null || response.Customers.Any(customer => !ValidCustomer(customer)))
+            throw new InvalidDataException("The server returned invalid customer data.");
+        return response.Customers;
+    }
+
+    public async Task<Customer> SaveCustomerAsync(int? id, CustomerInput input, CancellationToken cancellationToken = default)
+    {
+        if (id is <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+        using HttpResponseMessage response = await SendMutationAsync(id is null ? HttpMethod.Post : HttpMethod.Patch,
+            id is null ? "api/customers" : $"api/customers/{id}", JsonContent.Create(input), "customer", cancellationToken);
+        CustomerResponse? result = await response.Content.ReadFromJsonAsync<CustomerResponse>(cancellationToken);
+        if (!ValidCustomer(result?.Customer) || (id.HasValue && result!.Customer!.Id != id.Value))
+            throw new InvalidDataException("The server did not return a valid saved customer. Refresh before retrying.");
+        return result!.Customer!;
+    }
+
+    public async Task DeleteCustomerAsync(int id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+        using HttpResponseMessage response = await SendMutationAsync(HttpMethod.Delete, $"api/customers/{id}", null, "customer", cancellationToken);
+        if (response.StatusCode != HttpStatusCode.NoContent)
+            throw new InvalidDataException("Unexpected delete response. Refresh to check the result.");
+    }
+
+    private static bool ValidCustomer(Customer? customer) => customer is not null && customer.Id > 0 &&
+        !string.IsNullOrWhiteSpace(customer.Name) && !string.IsNullOrWhiteSpace(customer.Email) && !string.IsNullOrWhiteSpace(customer.Phone);
 
     private static bool ValidUser(AuthUser? user) =>
         user is not null && user.Id > 0 &&

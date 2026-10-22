@@ -55,6 +55,9 @@ public partial class MainWindow : Window
             await _viewModel.Inventory.LoadAsync();
     }
 
-    private void Customers_Click(object sender, RoutedEventArgs e) =>
-        _viewModel.Workspace.Navigate(WorkspacePage.Customers);
+    private async void Customers_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.Workspace.Navigate(WorkspacePage.Customers))
+            await _viewModel.Customers.LoadAsync();
+    }
 }
