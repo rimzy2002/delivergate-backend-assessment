@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../Delivergate.Desktop/Models/HealthResponse.cs" Link="HealthResponse.cs" />
-    <Compile Include="../Delivergate.Desktop/Services/ApiClient.cs" Link="ApiClient.cs" />
-    <Compile Include="../Delivergate.Desktop/ViewModels/MainWindowViewModel.cs" Link="MainWindowViewModel.cs" />
+    <Compile Include="../Delivergate.Desktop/Models/*.cs" Link="Models/%(Filename)%(Extension)" />
+    <Compile Include="../Delivergate.Desktop/Services/*.cs" Link="Services/%(Filename)%(Extension)" />
+    <Compile Include="../Delivergate.Desktop/ViewModels/*.cs" Link="ViewModels/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

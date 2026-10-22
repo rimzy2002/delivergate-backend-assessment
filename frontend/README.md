@@ -4,7 +4,7 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F2 - Backend connection
+## Current stage: F3 - Login and session handling
 
 Implemented:
 
@@ -17,7 +17,10 @@ Implemented:
 Click Check connection to call `GET /health`. The screen reports success,
 an unreachable server, a timeout, HTTP errors, or invalid health responses.
 The button is disabled during requests, and the window stays responsive.
-Login, role permissions, and CRUD screens come afterwards.
+F3 adds email/password login, server-verified identity, a signed-in view showing
+name/email/role, session verification, and local logout. Role-based navigation
+and CRUD screens come afterwards. See [the F3 guide](F3-guide.md) for the code
+explanation, test results, and manual walkthrough.
 
 ## Requirements
 
@@ -71,6 +74,10 @@ start the backend with `go run .` in a separate terminal at the repository root.
 | `Models/HealthResponse.cs` | Represents the health response JSON |
 | `Services/ApiClient.cs` | Reuses one HTTP client with a 10-second timeout |
 | `ViewModels/MainWindowViewModel.cs` | Updates connection status and busy state |
+| `ViewModels/AuthViewModel.cs` | Validates login input and exposes authentication screen state |
+| `Models/AuthModels.cs` | Represents login and current-user JSON responses |
+| `Services/UserSession.cs` | Holds the token and current user in memory only |
+| `Services/ApiException.cs` | Reports safe authentication errors with HTTP status codes |
 | `appsettings.json` | Stores the API address |
 
 All desktop C# files belong under `frontend/Delivergate.Desktop`, not in the
@@ -99,3 +106,21 @@ This dependency-free check runner compiles the actual service and view-model
 sources and tests success, failures, busy state, duplicate clicks, and recovery.
 It exits with a nonzero code on failure. It does not replace manual WPF UI checks.
 With the real Go backend running, add `-- --live` to also check localhost:3000.
+
+The same runner also checks authentication using controlled HTTP responses.
+For live authentication, set `OWNER_PASSWORD`, `MANAGER_PASSWORD`, and
+`CASHIER_PASSWORD` in the current process environment to match your local
+backend settings, and add `-- --live --live-auth`. Never commit those values.
+This checks all three seeded roles against the running backend without printing tokens.
+
+## Session security
+
+- Passwords are masked and cleared from the input on submission; they are not saved.
+- Tokens exist only in memory. Closing the app requires a new login next time.
+- Login succeeds only after `/api/auth/me` accepts the returned token.
+- A 401 from session verification clears the session and shows the sign-in form.
+- Logout clears this client's session; it does not revoke an already-issued token
+  on the backend. The backend currently expires tokens after 24 hours.
+- Expiry is detected on a protected request, not by a background timer.
+- Use HTTPS for a remote deployment. HTTP localhost is for local development.
+- The backend remains responsible for enforcing role permissions.

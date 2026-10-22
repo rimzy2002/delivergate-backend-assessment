@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Delivergate - Shop Management"
         Width="820"
-        Height="520"
+        Height="760"
         MinWidth="600"
         MinHeight="420"
         WindowStartupLocation="CenterScreen"
@@ -11,6 +11,10 @@
         Foreground="#222222"
         FontFamily="Segoe UI"
         FontSize="14">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibility" />
+    </Window.Resources>
 
     <Grid Margin="32">
         <Grid.RowDefinitions>
@@ -30,34 +34,51 @@
             <Separator />
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Margin="0,24,0,24">
-            <TextBlock Text="Backend connection"
-                       FontSize="20"
-                       FontWeight="SemiBold" />
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,16,0,16">
+            <StackPanel Margin="0,0,16,0">
+                <StackPanel Visibility="{Binding Auth.IsSignedOut, Converter={StaticResource BoolVisibility}}"
+                            IsEnabled="{Binding Auth.CanInteract}">
+                    <TextBlock Text="Sign in" FontSize="20" FontWeight="SemiBold" />
+                    <Label Content="_Email" Target="{Binding ElementName=LoginEmail}" Margin="0,12,0,0" />
+                    <TextBox x:Name="LoginEmail" Text="{Binding Auth.Email, UpdateSourceTrigger=PropertyChanged}"
+                             MaxLength="254" Padding="8" MaxWidth="420" HorizontalAlignment="Left"
+                             Width="350" AutomationProperties.Name="Email" />
+                    <Label Content="_Password" Target="{Binding ElementName=LoginPassword}" Margin="0,10,0,0" />
+                    <PasswordBox x:Name="LoginPassword" Padding="8" Width="350" HorizontalAlignment="Left"
+                                 AutomationProperties.Name="Password" />
+                    <Button Content="_Sign in" Click="Login_Click" Padding="20,8" Margin="0,16,0,0"
+                            HorizontalAlignment="Left" IsDefault="True" />
+                </StackPanel>
 
-            <TextBlock
-                Text="Check that the backend is available before signing in."
-                Margin="0,12,0,20"
-                TextWrapping="Wrap" />
+                <StackPanel Visibility="{Binding Auth.IsSignedIn, Converter={StaticResource BoolVisibility}}">
+                    <TextBlock Text="Signed in" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Auth.UserName}" FontSize="18" Margin="0,12,0,4" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Auth.UserEmail}" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="Role: " FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Auth.UserRole}" />
+                    </StackPanel>
+                    <TextBlock Text="Inventory and customer screens will be added in the next stages."
+                               TextWrapping="Wrap" Margin="0,12,0,0" />
+                    <WrapPanel Margin="0,16,0,0" IsEnabled="{Binding Auth.CanInteract}">
+                        <Button Content="_Verify session" Click="VerifySession_Click" Padding="16,8" Margin="0,0,12,8" />
+                        <Button Content="Sign _out" Click="Logout_Click" Padding="16,8" Margin="0,0,0,8" />
+                    </WrapPanel>
+                </StackPanel>
 
-            <TextBlock Text="API address"
-                       FontWeight="SemiBold" />
-
-            <TextBlock Text="{Binding ApiBaseUrl}"
-                       Margin="0,6,0,20"
-                       TextWrapping="Wrap" />
-
-            <Button Content="_Check connection"
-                    HorizontalAlignment="Left"
-                    Padding="16,8"
-                    IsEnabled="{Binding CanCheckConnection}"
-                    Click="CheckConnection_Click" />
-
-            <TextBlock Text="{Binding StatusMessage}"
-                       Margin="0,16,0,0"
-                       TextWrapping="Wrap"
-                       AutomationProperties.LiveSetting="Polite" />
-        </StackPanel>
+                <TextBlock Text="{Binding Auth.Message}" Margin="0,16,0,0" TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" />
+                <TextBlock Text="Your session is kept only while this app is open."
+                           FontSize="12" Margin="0,8,0,20" TextWrapping="Wrap" />
+                <Separator />
+                <TextBlock Text="Backend connection" FontWeight="SemiBold" Margin="0,16,0,6" />
+                <TextBlock Text="{Binding ApiBaseUrl}" TextWrapping="Wrap" />
+                <Button Content="_Check connection" HorizontalAlignment="Left" Padding="16,6" Margin="0,10,0,0"
+                        IsEnabled="{Binding CanCheckConnection}" Click="CheckConnection_Click" />
+                <TextBlock Text="{Binding StatusMessage}" Margin="0,10,0,0" TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+        </ScrollViewer>
 
         <Button Grid.Row="2"
                 Content="_Close"

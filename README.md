@@ -198,8 +198,8 @@ main.go       Application routes and startup
 ## Desktop frontend (in progress)
 
 The optional Windows desktop client is in [`frontend`](frontend/README.md).
-F1/F2 provide a simple WPF window, configurable API address, and a working
-backend health check with connection error handling. Login and CRUD
+F1–F3 provide a simple WPF window, configurable API address, backend health
+checks, and login with in-memory session handling. Role-based navigation and CRUD
 screens are planned for the following stages; they are not implemented yet.
 
 To run the current window, install the .NET 10 SDK on Windows and use:
@@ -226,4 +226,5 @@ request timeouts, unsuccessful HTTP responses, and invalid response data.
 The button is disabled while a request is running.
 
 Start the Go backend before checking the connection.
-Authentication will be added in the next stage.
+Authentication is implemented in F3: login, server-verified user details,
+session verification, and local logout. See [the F3 guide](frontend/F3-guide.md).

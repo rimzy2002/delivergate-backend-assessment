@@ -19,9 +19,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         _apiClient = apiClient;
         ApiBaseUrl = apiBaseUrl;
+        Auth = new AuthViewModel(apiClient);
     }
 
     public string ApiBaseUrl { get; }
+    public AuthViewModel Auth { get; }
 
     public string StatusMessage
     {

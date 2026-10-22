@@ -26,4 +26,23 @@ public partial class MainWindow : Window
     {
         Close();
     }
+
+    private async void Login_Click(object sender, RoutedEventArgs e)
+    {
+        string password = LoginPassword.Password;
+        LoginPassword.Clear();
+        // Never store the password as a view-model property or write it to disk.
+        await _viewModel.Auth.LoginAsync(password);
+    }
+
+    private async void VerifySession_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.Auth.VerifySessionAsync();
+    }
+
+    private void Logout_Click(object sender, RoutedEventArgs e)
+    {
+        LoginPassword.Clear();
+        _viewModel.Auth.Logout();
+    }
 }

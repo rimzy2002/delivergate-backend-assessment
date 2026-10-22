@@ -92,6 +92,8 @@ if (args.Contains("--live"))
 
 Console.WriteLine($"All {passed} connection checks passed.");
 
+await AuthChecks.RunAsync(args);
+
 sealed class StubHandler(
     Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) : HttpMessageHandler
 {
