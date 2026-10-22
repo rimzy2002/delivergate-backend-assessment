@@ -93,13 +93,14 @@ public sealed class ApiClient : IDisposable
 
     private async Task<AuthUser> FetchCurrentUserAsync(string token)
     {
+        int revision = Session.Revision;
         using var request = new HttpRequestMessage(HttpMethod.Get, "api/auth/me");
         // A per-request header avoids attaching a token to login or health requests.
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using HttpResponseMessage response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
-            if (response.StatusCode == HttpStatusCode.Unauthorized) Session.Clear();
+            if (response.StatusCode == HttpStatusCode.Unauthorized && Session.Revision == revision) Session.Clear();
             throw AuthError(response.StatusCode, isLogin: false);
         }
 
@@ -109,6 +110,43 @@ public sealed class ApiClient : IDisposable
             throw new InvalidDataException("The server returned incomplete user details.");
         }
         return result!.User!;
+    }
+
+    public async Task<IReadOnlyList<InventoryItem>> GetItemsAsync(CancellationToken cancellationToken = default)
+    {
+        ItemsResponse result = await GetProtectedAsync<ItemsResponse>("api/items", cancellationToken);
+        if (result.Items is null || result.Items.Any(item => item is null || item.Id <= 0 ||
+            string.IsNullOrWhiteSpace(item.Name) || item.CategoryId <= 0 || item.Price <= 0 || item.Quantity < 0))
+            throw new InvalidDataException("The server returned invalid inventory data.");
+        return result.Items;
+    }
+
+    public async Task<IReadOnlyList<InventoryCategory>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        CategoriesResponse result = await GetProtectedAsync<CategoriesResponse>("api/categories", cancellationToken);
+        if (result.Categories is null || result.Categories.Any(category => category is null ||
+            category.Id <= 0 || string.IsNullOrWhiteSpace(category.Name)))
+            throw new InvalidDataException("The server returned invalid category data.");
+        return result.Categories;
+    }
+
+    private async Task<T> GetProtectedAsync<T>(string path, CancellationToken cancellationToken)
+    {
+        string? token = Session.Token;
+        int revision = Session.Revision;
+        if (token is null) throw new ApiException(HttpStatusCode.Unauthorized, "Please sign in first.");
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            // A delayed response from an old account must not sign out a newer one.
+            if (response.StatusCode == HttpStatusCode.Unauthorized && Session.Revision == revision)
+                Session.Clear();
+            throw AuthError(response.StatusCode, isLogin: false);
+        }
+        return await response.Content.ReadFromJsonAsync<T>(cancellationToken)
+            ?? throw new InvalidDataException("The server returned an empty response.");
     }
 
     private static bool ValidUser(AuthUser? user) =>

@@ -14,10 +14,12 @@ public sealed class AuthViewModel : INotifyPropertyChanged
     private string _email = "";
     private string _message = "Sign in with your shop account.";
     private bool _isBusy;
+    private bool _wasSignedIn;
 
     public AuthViewModel(ApiClient api)
     {
         _api = api;
+        _wasSignedIn = api.Session.IsSignedIn;
         _api.Session.Changed += SessionChanged;
     }
 
@@ -90,6 +92,8 @@ public sealed class AuthViewModel : INotifyPropertyChanged
 
     private void SessionChanged()
     {
+        if (_wasSignedIn && !IsSignedIn) Message = "Your session ended. Please sign in again.";
+        _wasSignedIn = IsSignedIn;
         Notify(nameof(IsSignedIn));
         Notify(nameof(IsSignedOut));
         Notify(nameof(UserName));

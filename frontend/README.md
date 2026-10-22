@@ -4,7 +4,7 @@ The optional C# WPF client for the Delivergate assessment. It uses the Go API
 in the repository root. The interface starts with standard Windows controls
 and a simple white background.
 
-## Current stage: F4 - Navigation and role-based workspace
+## Current stage: F5 - Inventory listing, search, and category filter
 
 Implemented:
 
@@ -21,8 +21,13 @@ F3 adds email/password login, server-verified identity, a signed-in view showing
 name/email/role, session verification, and local logout. See [the F3 guide](F3-guide.md).
 F4 adds Dashboard, Inventory, and Customers navigation with permission summaries
 matching the Go backend. All three roles can open both management sections;
-their permitted actions differ. Data lists/forms are still F5–F7 work.
+their permitted actions differ. Inventory forms and customer workflows are still F6–F7 work.
 See [the F4 guide](F4-guide.md) for the permission matrix, code explanation, and tests.
+
+F5 loads real inventory and categories using authenticated GET requests. Open
+Inventory to load data, search by name, choose a category, or click Refresh.
+The read-only table shows ID, name, category, price, and quantity. Selecting a
+row displays its description. See [the F5 guide](F5-guide.md).
 
 ## Requirements
 
@@ -84,6 +89,8 @@ start the backend with `go run .` in a separate terminal at the repository root.
 | `ViewModels/WorkspaceViewModel.cs` | Guards navigation and resets workspace state on logout |
 | `Views/DashboardView.xaml` | Shows the workspace introduction |
 | `Views/InventoryView.xaml` / `Views/CustomersView.xaml` | Show role permissions and upcoming features |
+| `ViewModels/InventoryViewModel.cs` | Loads inventory and applies search/category filters |
+| `Models/InventoryModels.cs` | Maps item and category JSON, including category_id |
 | `appsettings.json` | Stores the API address |
 
 All desktop C# files belong under `frontend/Delivergate.Desktop`, not in the
@@ -118,6 +125,7 @@ For live authentication, set `OWNER_PASSWORD`, `MANAGER_PASSWORD`, and
 `CASHIER_PASSWORD` in the current process environment to match your local
 backend settings, and add `-- --live --live-auth`. Never commit those values.
 This checks all three seeded roles against the running backend without printing tokens.
+Also add `--live-inventory` to read categories/items for each role without changing records.
 
 ## Session security
 

@@ -84,7 +84,9 @@
                                 <TextBlock Text="{Binding PageTitle}" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,18"
                                            AutomationProperties.LiveSetting="Polite" />
                                 <views:DashboardView Visibility="{Binding IsDashboard, Converter={StaticResource BoolVisibility}}" />
-                                <views:InventoryView Visibility="{Binding IsInventory, Converter={StaticResource BoolVisibility}}" />
+                                <views:InventoryView
+                                    DataContext="{Binding DataContext.Inventory, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    Visibility="{Binding DataContext.Workspace.IsInventory, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVisibility}}" />
                                 <views:CustomersView Visibility="{Binding IsCustomers, Converter={StaticResource BoolVisibility}}" />
                             </StackPanel>
                         </Border>

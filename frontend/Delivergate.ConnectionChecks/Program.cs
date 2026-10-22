@@ -94,6 +94,7 @@ Console.WriteLine($"All {passed} connection checks passed.");
 
 await AuthChecks.RunAsync(args);
 NavigationChecks.Run();
+await InventoryChecks.RunAsync();
 
 sealed class StubHandler(
     Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) : HttpMessageHandler

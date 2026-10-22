@@ -21,11 +21,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ApiBaseUrl = apiBaseUrl;
         Auth = new AuthViewModel(apiClient);
         Workspace = new WorkspaceViewModel(apiClient.Session);
+        Inventory = new InventoryViewModel(apiClient);
     }
 
     public string ApiBaseUrl { get; }
     public AuthViewModel Auth { get; }
     public WorkspaceViewModel Workspace { get; }
+    public InventoryViewModel Inventory { get; }
 
     public string StatusMessage
     {

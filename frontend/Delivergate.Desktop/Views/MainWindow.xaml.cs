@@ -49,8 +49,11 @@ public partial class MainWindow : Window
     private void Dashboard_Click(object sender, RoutedEventArgs e) =>
         _viewModel.Workspace.Navigate(WorkspacePage.Dashboard);
 
-    private void Inventory_Click(object sender, RoutedEventArgs e) =>
-        _viewModel.Workspace.Navigate(WorkspacePage.Inventory);
+    private async void Inventory_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel.Workspace.Navigate(WorkspacePage.Inventory))
+            await _viewModel.Inventory.LoadAsync();
+    }
 
     private void Customers_Click(object sender, RoutedEventArgs e) =>
         _viewModel.Workspace.Navigate(WorkspacePage.Customers);

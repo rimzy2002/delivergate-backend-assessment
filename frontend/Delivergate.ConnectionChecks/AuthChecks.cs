@@ -191,6 +191,13 @@ internal static class AuthChecks
                 await api.LoginAsync(role + "@delivergate.local", password);
                 Assert(api.Session.User?.Role == role, "Real user role");
                 await api.RefreshSessionAsync();
+                if (args.Contains("--live-inventory"))
+                {
+                    var categories = await api.GetCategoriesAsync();
+                    var items = await api.GetItemsAsync();
+                    Assert(categories.All(category => category.Id > 0) && items.All(item => item.Id > 0), "Live inventory shape");
+                    Pass($"live {role} read-only categories and inventory");
+                }
                 api.Session.Clear();
                 Assert(!api.Session.IsSignedIn, "Real session cleared");
                 Pass($"live {role} login, /me and local logout");
